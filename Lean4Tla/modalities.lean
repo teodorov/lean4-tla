@@ -265,9 +265,20 @@ theorem later_to_eventually:
 theorem always_expand:
   (□ p) = (p ∧ □ p)
 := by {
-  sorry
+  apply predicate_ext
+  intro e
+  simp [always, tla_and]
+  intro H
+  specialize H 0
+  apply H
 }
 
+lemma kmp : ∀ n, n - 1 + 1 = n
+:= by {
+  intro n
+  sorry
+
+}
 theorem always_unroll:
   (□ p) = (p ∧ (later (□ p)))
 := by {
@@ -277,8 +288,10 @@ theorem always_unroll:
   . apply And.intro
     . specialize H 0; apply H
     . intro k; specialize H (k + 1); rw [drop_drop]; exact H
-  . intro H1 k; specialize H1 (k - 1); rw [drop_drop] at H1;
-    sorry
+  . intro H1 k; specialize H1 (k - 1); rw [drop_drop] at H1
+    conv at H1 =>
+      conv in k-1+1 => rw [kmp]
+    exact H1
 }
 
 
