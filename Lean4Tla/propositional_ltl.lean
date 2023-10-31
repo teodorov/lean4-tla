@@ -3,6 +3,13 @@ import Mathlib.Tactic.PushNeg
 import Mathlib.Tactic.LibrarySearch
 import «Lean4Tla».tla
 
+/-
+**Propositional theorems for TLA**
+
+These theorems are straightforward analogues of propositional logic theorems for
+temporal predicates.
+-/
+
 variable {T: Type}
 variable (p p₁ p₂ p₃ q r: predicate T)
 
@@ -48,25 +55,25 @@ lemma tla_and_implies: ((p₁ ∧ p₂) → q) = (p₁ → p₂ → q):=
     --   apply hp1p2.left
     --   apply hp1p2.right
 
-@[simp] lemma tla_and_assoc: ((p₁ ∧ p₂) ∧ p₃) = (p₁ ∧ (p₂ ∧ p₃)):=
-  by
-    simp [tla_and]
-    apply funext
-    intro X
-    apply propext
-    constructor
-    . intro H
-      apply And.intro
-      apply H.left.left
-      apply And.intro
-      apply H.left.right
-      apply H.right
-    . intro H
-      apply And.intro
-      apply And.intro
-      apply H.left
-      apply H.right.left
-      apply H.right.right
+-- @[simp] lemma tla_and_assoc: ((p₁ ∧ p₂) ∧ p₃) = (p₁ ∧ (p₂ ∧ p₃)):=
+--   by
+--     simp [tla_and]
+--     apply funext
+--     intro X
+--     apply propext
+--     constructor
+--     . intro H
+--       apply And.intro
+--       apply H.left.left
+--       apply And.intro
+--       apply H.left.right
+--       apply H.right
+--     . intro H
+--       apply And.intro
+--       apply And.intro
+--       apply H.left
+--       apply H.right.left
+--       apply H.right.right
 
 @[simp] lemma tla_or_assoc: ((p₁ ∨ p₂) ∨ p₃) = (p₁ ∨ (p₂ ∨ p₃)):=
   by

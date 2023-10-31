@@ -11,7 +11,7 @@ This file just sets out the basic definitions of TLA, in particular:
 - the always and eventually *modalities* of TLA.
 -/
 
-notation "ℕ" => Nat
+import Mathlib.Init.Data.Nat.Notation
 
 variable {Θ: Type}
 
