@@ -1,16 +1,17 @@
 import Mathlib.Tactic.Tauto
 import Mathlib.Tactic.PushNeg
+import Mathlib.Tactic.LibrarySearch
 import «Lean4Tla».tla
 
 variable {T: Type}
-variable (p p₁ p₂ p₃ q : predicate T)
+variable (p p₁ p₂ p₃ q r: predicate T)
 
-theorem tla_and_idem: ( p ∧ p) = p := by simp [tla_and]
+lemma tla_and_idem: ( p ∧ p) = p:= by simp [tla_and]
 
-theorem tla_or_idem: ( p ∨ p ) = p := by simp [tla_or]
+lemma tla_or_idem: ( p ∨ p ) = p:= by simp [tla_or]
 
 
-theorem tla_and_comm: (p ∧ q) = (q ∧ p) :=
+lemma tla_and_comm: (p ∧ q) = (q ∧ p):=
   by
     simp [tla_and]
     apply funext
@@ -18,7 +19,7 @@ theorem tla_and_comm: (p ∧ q) = (q ∧ p) :=
     apply propext
     apply And.comm
 
-theorem tla_or_comm: (p ∨ q) = (q ∨ p) :=
+lemma tla_or_comm: (p ∨ q) = (q ∨ p):=
   by
     simp [tla_or]
     apply funext
@@ -28,7 +29,7 @@ theorem tla_or_comm: (p ∨ q) = (q ∨ p) :=
     intro H; apply Or.elim H (fun hp => Or.inr hp) (fun hq => Or.inl hq)
     intro H; apply Or.elim H (fun hp => Or.inr hp) (fun hq => Or.inl hq)
 
-theorem tla_and_implies : ((p₁ ∧ p₂) → q) = (p₁ → p₂ → q) :=
+lemma tla_and_implies: ((p₁ ∧ p₂) → q) = (p₁ → p₂ → q):=
   by
     simp [tla_and, tla_implies]
     -- apply funext
@@ -47,7 +48,7 @@ theorem tla_and_implies : ((p₁ ∧ p₂) → q) = (p₁ → p₂ → q) :=
     --   apply hp1p2.left
     --   apply hp1p2.right
 
-theorem tla_and_assoc : ((p₁ ∧ p₂) ∧ p₃) = (p₁ ∧ (p₂ ∧ p₃)) :=
+@[simp] lemma tla_and_assoc: ((p₁ ∧ p₂) ∧ p₃) = (p₁ ∧ (p₂ ∧ p₃)):=
   by
     simp [tla_and]
     apply funext
@@ -67,7 +68,7 @@ theorem tla_and_assoc : ((p₁ ∧ p₂) ∧ p₃) = (p₁ ∧ (p₂ ∧ p₃)) 
       apply H.right.left
       apply H.right.right
 
-theorem tla_or_assoc : ((p₁ ∨ p₂) ∨ p₃) = (p₁ ∨ (p₂ ∨ p₃)) :=
+@[simp] lemma tla_or_assoc: ((p₁ ∨ p₂) ∨ p₃) = (p₁ ∨ (p₂ ∨ p₃)):=
   by
     simp [tla_or]
     apply funext
@@ -91,38 +92,38 @@ theorem tla_or_assoc : ((p₁ ∨ p₂) ∨ p₃) = (p₁ ∨ (p₂ ∨ p₃)) :
       intro p2; apply Or.inl; apply Or.inr; exact p2
       intro p3; apply Or.inr; exact p3
 
-theorem tla_and_true_r : (p ∧ tla_true) = p :=
+@[simp] lemma tla_and_true_r: (p ∧ tla_true) = p:=
   by simp [tla_true, tla_and]
 
-theorem tla_and_true_l : (tla_true ∧ p) = p :=
+@[simp] lemma tla_and_true_l: (tla_true ∧ p) = p:=
   by simp [tla_true, tla_and]
 
 
-theorem tla_or_false_r : (p ∨ tla_false) = p :=
+@[simp] lemma tla_or_false_r: (p ∨ tla_false) = p:=
   by simp [tla_false, tla_or]
 
-theorem tla_or_false_l : (tla_false ∨ p) = p :=
+@[simp] lemma tla_or_false_l: (tla_false ∨ p) = p:=
   by simp [tla_false, tla_or]
 
-theorem tla_any_impl_true : p ⊢ tla_true :=
+lemma tla_any_impl_true: p ⊢ tla_true:=
   by simp [pred_impl, tla_true]
 
-theorem tla_false_impl_any : tla_false ⊢ p :=
+lemma tla_false_impl_any: tla_false ⊢ p:=
   by simp [pred_impl, tla_false]
 
-theorem tla_or_inl : p ⊢ p ∨ q :=
+lemma tla_or_inl: p ⊢ p ∨ q:=
   by
     simp [pred_impl, tla_or]
     intros he hp
     apply Or.inl; exact hp
 
-theorem tla_or_inr : q ⊢ p ∨ q :=
+lemma tla_or_inr: q ⊢ p ∨ q:=
   by
     simp [pred_impl, tla_or]
     intros he hq
     apply Or.inr; exact hq
 
-theorem tla_forall_intro {A} (φ: A → predicate A) Γ :
+lemma tla_forall_intro {A} (φ: A → predicate A) Γ:
   (∀ x, Γ ⊢ φ x) → Γ ⊢ ∀ x, φ x
 := by
     simp [pred_impl, tla_forall]
@@ -130,14 +131,14 @@ theorem tla_forall_intro {A} (φ: A → predicate A) Γ :
     intros e HG x
     apply Hx; apply HG
 
-theorem tla_forall_apply {A} (φ: A → predicate A) (x₀: A) :
+lemma tla_forall_apply {A} (φ: A → predicate A) (x₀: A):
   (∀ x, φ x) ⊢ φ x₀
 := by
   simp [tla_forall, pred_impl]
   intro He Hx
   specialize Hx x₀; exact Hx
 
-theorem tla_exists_intro {A} (φ: A → predicate A) :
+lemma tla_exists_intro {A} (φ: A → predicate A):
   (∃ x, ⊢ φ x) → ⊢ ∃ x, φ x
 := by
     simp [tla_exists, valid]
@@ -148,14 +149,14 @@ theorem tla_exists_intro {A} (φ: A → predicate A) :
     -- apply Exists.intro HA
     -- apply He
 
-theorem tla_exists_impl {A} (φ: A → predicate A) (x₀ : A) :
+lemma tla_exists_impl {A} (φ: A → predicate A) (x₀: A):
   φ x₀ ⊢ ∃ x, φ x
 := by
   simp [tla_exists, pred_impl]
   intros He Hφ
   apply Exists.intro x₀; apply Hφ
 
-theorem tla_exist_impl_intro {A} (φ: A → predicate A) Γ :
+lemma tla_exist_impl_intro {A} (φ: A → predicate A) Γ:
   (∃ x, Γ ⊢ φ x) →
   Γ ⊢ ∃ x, φ x
 := by
@@ -168,7 +169,7 @@ theorem tla_exist_impl_intro {A} (φ: A → predicate A) Γ :
   -- specialize Hee He
   -- apply Hee; apply HΓ
 
-theorem tla_exist_and (φ: T → predicate T) :
+lemma tla_exist_and (φ: T → predicate T):
   ((∃ x, φ x) ∧ p) = (∃ x, φ x ∧ p)
 := by
   simp [tla_exists, tla_and]
@@ -191,7 +192,7 @@ theorem tla_exist_and (φ: T → predicate T) :
   --     apply Hand.right
 
 
-theorem tla_exists_or  [aI: Inhabited T] {φ: T → predicate T} :
+lemma tla_exists_or  [aI: Inhabited T] {φ: T → predicate T}:
   ((∃ x, φ x) ∨ p) = (∃ x, φ x ∨ p)
 := by
   simp [tla_exists, tla_or]
@@ -219,7 +220,7 @@ theorem tla_exists_or  [aI: Inhabited T] {φ: T → predicate T} :
     intro phx
     apply Or.inr; exact phx
 
-theorem tla_forall_and [aI: Inhabited T] {φ: T → predicate T}:
+lemma tla_forall_and [aI: Inhabited T] {φ: T → predicate T}:
   ((∀ x, φ x) ∧ p) = (∀ x, φ x ∧ p)
 := by
   simp [tla_forall, tla_and]
@@ -235,12 +236,12 @@ theorem tla_forall_and [aI: Inhabited T] {φ: T → predicate T}:
     specialize H aI.default; exact H.right
 
 open Classical
-example (h : ¬¬m) : m :=
+example (h: ¬¬m): m:=
   byContradiction
-    (fun h1 : ¬m =>
+    (fun h1: ¬m =>
      show False from h h1)
 
-theorem tla_forall_or {φ: T → predicate T}:
+lemma tla_forall_or {φ: T → predicate T}:
   ((∀ x, φ x) ∨ p) = (∀ x, φ x ∨ p)
 := by
   simp [tla_forall, tla_or]
@@ -260,3 +261,121 @@ theorem tla_forall_or {φ: T → predicate T}:
     push_neg
     simp [*] at *
     tauto
+
+lemma tla_modus_ponens:
+  (p ∧ (p → q)) ⊢ q
+:= by {
+  simp [tla_implies, tla_and, pred_impl]
+  tauto
+  -- intro He pHe iqHe
+  -- apply iqHe; exact pHe
+}
+
+/-
+more general excluded middle that allows inserting an [r ∨ !r] anywhere in a
+TLA goal
+-/
+lemma tla_and_em:
+  p = (p ∧ (q ∨ !q))
+:= by {
+  apply predicate_ext
+  intro He
+  simp [tla_and, tla_or, tla_not]
+  intro _
+  apply Classical.em
+  -- tauto
+}
+
+lemma tla_excluded_middle:
+  ((p ∧ r) ⊢ q) →
+  ((p ∧ !r) ⊢ q) →
+  (p ⊢ q)
+:= by {
+  intros H1 H2
+  simp [tla_and, tla_or, pred_impl, tla_implies, tla_not] at *
+  intros He; specialize H1 He; specialize H2 He
+  tauto
+}
+
+lemma tla_contra:
+  ((p ∧ !q) ⊢ tla_false) → p ⊢ q
+:= by {
+  simp [tla_and, tla_not, pred_impl, tla_false]
+  intro H He Hpe
+  specialize H He
+  tauto
+}
+
+lemma tla_and_distr_l:
+  (p ∧ (q ∨ r)) = (p ∧ q ∨ p ∧ r)
+:= by {
+  apply predicate_ext; intro He
+  simp [tla_and, tla_or]
+  tauto
+}
+
+lemma tla_and_distr_r:
+  ((q ∨ r) ∧ p) = ((q ∧ p) ∨ (r ∧ p))
+:= by {
+  apply predicate_ext; intro He
+  simp [tla_and, tla_or]
+  tauto
+}
+
+lemma tla_or_distr_l:
+  (p ∨ (q ∧ r)) = ((p ∨ q) ∧ (p ∨ r))
+:= by {
+  apply predicate_ext; intro He
+  simp [tla_and, tla_or]
+  tauto
+}
+
+lemma tla_or_distr_r:
+  ((q ∧ r) ∨ p) = ((q ∨ p) ∧ (r ∨ p))
+:= by {
+  apply predicate_ext; intro He
+  simp [tla_and, tla_or]
+  tauto
+}
+
+lemma impl_intro:
+  (p ⊢ q) → (⊢ p → q)
+:= by {
+  simp [pred_impl, valid, tla_implies]
+}
+
+lemma tla_and_curry:
+  ((p ∧ q) ⊢ r) ↔ (p ⊢ q → r)
+:= by {
+  simp [tla_and, pred_impl, tla_implies]
+}
+
+lemma impl_intro2:
+  ((p ∧ q) ⊢ r) → (p ⊢ q → r)
+:= by {
+  rw [tla_and_curry]; exact id
+}
+
+lemma impl_or_split:
+  (p ⊢ r) →
+  (q ⊢ r) →
+  ((p ∨ q) ⊢ r)
+:= by {
+  simp [tla_or, pred_impl, tla_implies]
+  tauto
+}
+
+lemma impl_drop_hyp:
+  (⊢ q) →
+  p ⊢ q
+:= by {
+  tauto
+}
+
+lemma impl_drop_one:
+  (p ⊢ q) →
+  (p ∧ r) ⊢ q
+:= by {
+    simp [tla_and, pred_impl, tla_implies]
+    tauto
+}

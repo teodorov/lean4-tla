@@ -1,6 +1,6 @@
 /-
 ================================
-Embedding the TLA logic in Coq
+Embedding the TLA logic in L∃∀N4
 ================================
 
 This development defines a version of TLA (the Temporal Logic of Actions) in
@@ -66,7 +66,7 @@ formal definition than TLA, which seems to only use them in actions and does not
 def later (p : predicate θ) : predicate θ := λ e => p (drop 1 e)
 
 /-
-`valid` asserts that a TLA formula "holds" or "is true", which is defined as holding for all executions. This is sometimes phrased as saying that `p` is a tautology, but that can be confusing if you're not used to it. We'll use the standard logic notation `⊢ p` to state that `p` is valid. Note that validity is a "meta language assertion" (Prop, since Coq is our meta language), not a TLA formula.
+`valid` asserts that a TLA formula "holds" or "is true", which is defined as holding for all executions. This is sometimes phrased as saying that `p` is a tautology, but that can be confusing if you're not used to it. We'll use the standard logic notation `⊢ p` to state that `p` is valid. Note that validity is a "meta language assertion" (Prop, since L∃∀N4 is our meta language), not a TLA formula.
 -/
 --@[simp]
 def valid (p: predicate θ) := ∀ e, p e
