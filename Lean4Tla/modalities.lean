@@ -141,7 +141,10 @@ theorem always_eventually_distrib:
 := by {
   apply predicate_ext
   intro e
-  sorry
+  simp [eventually, always, tla_or]
+  constructor <;> (intros H)
+  . sorry
+  . sorry
 }
 
 theorem eventually_and:
@@ -160,11 +163,17 @@ the right allows them to happen only separately
 -/
 theorem always_eventually_and:
   (□◇ (p1 ∧ p2)) ⊢ (□◇ p1) ∧ □◇ p2
-:= by sorry
+:= by {
+  simp [eventually, always, tla_and, pred_impl]
+  intros e H
+  apply And.intro <;> (intro k; specialize H k; tauto)
+}
 
 theorem eventually_always_distrib:
   (◇□ (p1 ∧ p2)) = ((◇□ p1) ∧ (◇□ p2))
-:= by sorry
+:= by {
+  sorry
+}
 
 theorem always_or:
   ((□ p1) ∨ (□ p2)) ⊢ □ (p1 ∨ p2)
