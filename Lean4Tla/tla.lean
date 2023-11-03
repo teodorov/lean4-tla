@@ -39,14 +39,14 @@ notation:65 "⟨" a "⟩" => (action_predicate a)
 TLA lifts the basic propositional logic connectives to predicates over executions, in a straightforward way.
 -/
 
-def tla_not (p: predicate Θ) : predicate Θ := λ e => ¬ p e
-def tla_or (p₁ p₂ : predicate Θ) : predicate Θ := λ e => p₁ e ∨ p₂ e
-def tla_and (p₁ p₂ : predicate Θ) : predicate Θ := λ e => p₁ e ∧ p₂ e
---@[simp]
-def tla_implies (p₁ p₂ : predicate Θ) : predicate Θ := λ e => p₁ e → p₂ e
-def tla_forall {A: Type} (p: A → predicate θ) : predicate θ :=
+@[simp] def tla_not (p: predicate Θ) : predicate Θ := λ e => ¬ p e
+@[simp] def tla_or (p₁ p₂ : predicate Θ) : predicate Θ := λ e => p₁ e ∨ p₂ e
+@[simp] def tla_and (p₁ p₂ : predicate Θ) : predicate Θ := λ e => p₁ e ∧ p₂ e
+
+@[simp] def tla_implies (p₁ p₂ : predicate Θ) : predicate Θ := λ e => p₁ e → p₂ e
+@[simp] def tla_forall {A: Type} (p: A → predicate θ) : predicate θ :=
   λ e => ∀ x, (p x) e
-def tla_exists {A: Type} (p: A → predicate θ) : predicate θ :=
+@[simp] def tla_exists {A: Type} (p: A → predicate θ) : predicate θ :=
   λ e => ∃ x, (p x) e
 
 /-
@@ -56,26 +56,26 @@ The other important modality is `eventually p` (which will be written ◇ p).
 -/
 
 def drop (k: ℕ) (e: exec θ) : exec θ := λ n => e (n + k)
-def always (p: predicate θ) : predicate θ := λ e => ∀ k, p (drop k e)
-def eventually (p : predicate θ) : predicate θ := λ e => ∃ k, p (drop k e)
+@[simp] def always (p: predicate θ) : predicate θ := λ e => ∀ k, p (drop k e)
+@[simp] def eventually (p : predicate θ) : predicate θ := λ e => ∃ k, p (drop k e)
 
 /-
 This serves the rule of the "prime" in TLA, but with a more general and
 formal definition than TLA, which seems to only use them in actions and does not treat it as a full-fledged modality.
 -/
-def later (p : predicate θ) : predicate θ := λ e => p (drop 1 e)
+@[simp] def later (p : predicate θ) : predicate θ := λ e => p (drop 1 e)
 
 /-
 `valid` asserts that a TLA formula "holds" or "is true", which is defined as holding for all executions. This is sometimes phrased as saying that `p` is a tautology, but that can be confusing if you're not used to it. We'll use the standard logic notation `⊢ p` to state that `p` is valid. Note that validity is a "meta language assertion" (Prop, since L∃∀N4 is our meta language), not a TLA formula.
 -/
 --@[simp]
-def valid (p: predicate θ) := ∀ e, p e
+@[simp] def valid (p: predicate θ) := ∀ e, p e
 
 /-
 `pred_impl` is equivalent to `valid (tla_implies p q)`, but it's convenient for L∃∀N4 to have a definition for it (maybe, I haven't actually tried getting rid of it).
 -/
 --@[simp]
-def pred_impl (p q: predicate θ) := ∀ e, (p e) → (q e)
+@[simp] def pred_impl (p q: predicate θ) := ∀ e, (p e) → (q e)
 
 /-
 We assume some L∃∀N4 axioms so that predicates can be proven equal in the `=` sense if they are logically equivalent, which simplifies working with equivalent predicates a bit.
@@ -90,7 +90,7 @@ def pred_ext {A: Type} (P₁ P₂: A → Prop): (∀ x, P₁ x ↔ P₂ x) → P
     apply H
 
 
-noncomputable def predicate_ext (p₁ p₂ : predicate θ): (∀ e, p₁ e ↔ p₂ e) → p₁ = p₂ :=
+def predicate_ext (p₁ p₂ : predicate θ): (∀ e, p₁ e ↔ p₂ e) → p₁ = p₂ :=
   by apply pred_ext
 
 def pred_impl_as_valid (p q: predicate θ) : (pred_impl p q) ↔ (valid $ tla_implies p q) := by

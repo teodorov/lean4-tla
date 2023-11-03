@@ -2,6 +2,7 @@ import Mathlib.Tactic.Tauto
 import Mathlib.Tactic.PushNeg
 import Mathlib.Tactic.LibrarySearch
 import «Lean4Tla».tla
+import «Lean4Tla».tactics
 
 /-
 **Propositional theorems for TLA**
