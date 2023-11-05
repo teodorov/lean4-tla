@@ -57,7 +57,17 @@ theorem eventually_idem:
 := by {
   apply tla_not_inj
   simp [not_eventually]
-  apply always_idem
+  apply predicate_ext
+  intro e
+  constructor
+  . intros H x
+    specialize H x 0
+    rw [drop_0] at H
+    exact H
+  . intros H x₁ x₂
+    rw [drop_drop]
+    specialize H $ x₂ + x₁
+    exact H
 }
 
 
@@ -133,7 +143,17 @@ theorem eventually_or:
 := by {
   apply tla_not_inj
   simp [not_eventually, tla_not_or]
-  apply always_and
+  apply predicate_ext
+  intro e
+  constructor
+  . intros x
+    push_neg
+    exact Iff.mp ball_or_left x
+  . push_neg
+    intros H x
+    apply And.intro
+    . apply H.left
+    . apply H.right
 }
 
 theorem always_eventually_distrib:
@@ -172,14 +192,24 @@ theorem always_eventually_and:
 theorem eventually_always_distrib:
   (◇□ (p1 ∧ p2)) = ((◇□ p1) ∧ (◇□ p2))
 := by {
-  sorry
+  apply tla_not_inj
+  simp [*] at *
+  apply predicate_ext
+  intro e
+  constructor
+  . intros H x H₁ x₁
+    specialize H x₁
+    let ⟨xx, Hx⟩ := H
+    exists xx
+    apply Hx
+    sorry
+  . sorry
 }
 
 theorem always_or:
   ((□ p1) ∨ (□ p2)) ⊢ □ (p1 ∨ p2)
 := by {
   simp [always_to_eventually]
-  simp [tla_not, eventually, pred_impl, tla_or]
   intros e H k
   tauto
 }
