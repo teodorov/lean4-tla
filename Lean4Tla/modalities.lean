@@ -231,24 +231,31 @@ lemma eventually_always_reverse:
 }
 
 theorem always_eventually_idem:
-  (□ ◇ □ ◇ p) = □ ◇ p
+  (□ ◇ (□ ◇ p)) = (□ ◇ p)
 := by {
   apply predicate_ext
   simp [always, eventually]
   intro e
   constructor
   . intros H k
-    exists k
     specialize H k
+    --rw [drop_0] at H
+    let ⟨ xx, Hxx  ⟩ := H
+    specialize Hxx 0
+    rw [drop_0] at Hxx
+    let ⟨ yy, Hyy  ⟩ := Hxx
+
+    exists 0
+    rw [drop_drop] at *
     sorry
   . intros H k
-    exists k
-    intros k1
-    exists k1
-    specialize H k1
+    exists 0
+    intro k₁
+
+    specialize H 0
+    let ⟨ xx, Hxx  ⟩ := H
+    exists 0
     sorry
-
-
 }
 
 theorem eventually_always_idem:
@@ -312,25 +319,31 @@ theorem always_expand:
   apply H
 }
 
-lemma kmp : ∀ n, n - 1 + 1 = n
+theorem later_always:
+  (□ p) ⊢ later (□ p)
 := by {
-  intro n
-  sorry
-
+  simp [always, pred_impl, later]
+  intros e H k
+  specialize H $ k + 1
+  rw [drop_drop]
+  exact H
 }
+
 theorem always_unroll:
   (□ p) = (p ∧ (later (□ p)))
 := by {
   apply equiv_to_impl
-  <;> simp [always, later, tla_and, pred_impl]
-  <;> intro e H
-  . apply And.intro
+  . simp [always, later, tla_and, pred_impl]
+    intro e H
+    apply And.intro
     . specialize H 0; apply H
     . intro k; specialize H (k + 1); rw [drop_drop]; exact H
-  . intro H1 k; specialize H1 (k - 1); rw [drop_drop] at H1
-    conv at H1 =>
-      conv in k-1+1 => rw [kmp]
-    exact H1
+  . intro e H
+    simp [always, later, tla_and, pred_impl] at *
+    intro k₁
+    match k₁ with
+    | 0 => rw [drop_0]; exact H.left
+    | k₂ + 1 => rw [←drop_drop]; apply H.right
 }
 
 
@@ -384,7 +397,18 @@ theorem always_induction_impl:
   apply always_intro_impl
   rw [always_induction r]
   apply impl_intro'
+  simp [*] at *
+  intro e
+  specialize Hr e
+  specialize Hlr e
+  intros H Hqe
+  apply And.intro
   sorry
+
+
+
+
+
 }
 
 theorem always_induction_impl_pred a (Q R: T → Prop):
@@ -399,30 +423,83 @@ theorem always_induction_impl_pred a (Q R: T → Prop):
 
 }
 
-theorem later_always:
-  (□ p) ⊢ later (□ p)
-:= by {
-  rw [always_unroll]
-  simp [always, pred_impl, later, drop]
-  intro e H
-  sorry
-}
-
 theorem later_eventually:
   (p ∨ later (◇ p)) = ◇ p
-:= by sorry
+:= by {
+  apply predicate_ext
+  intro e
+  constructor
+  . intro H
+    apply Or.elim H
+    . intro H₁; exists 0
+    . intro H₁
+      let ⟨ kk, Hk ⟩ := H₁
+      exists kk + 1
+  . intro H
+    let ⟨ kk, Hk ⟩ := H
+    simp [*] at *
+    match kk with
+    | 0 =>
+      apply Or.inl
+      rw [drop_0] at Hk
+      exact Hk
+    | m+1 =>
+      apply Or.inr
+      exists m
+}
 
 theorem later_eventually_weaken:
   later (◇ p) ⊢ ◇ p
-:= by sorry
+:= by {
+  simp [*] at *
+  intros e x H
+  rw [drop_drop] at H
+  exists x+1
+}
 
 theorem always_eventually_always:
   (□◇□ p) = ◇□ p
-:= by sorry
+:= by {
+  apply predicate_ext
+  intro e
+  simp [*] at *
+  constructor
+  . intro H
+    specialize H 0
+    rw [drop_0] at H
+    exact H
+  . intros H k₁
+    let ⟨m, Hm⟩ := H
+    exists m
+    intro nn
+    rw [drop_drop]
+    rw [drop_drop]
+    specialize Hm $ nn + k₁
+    rw [drop_drop] at Hm
+    have Ha: nn + m + k₁ = nn + k₁ + m := by {
+      rw [add_assoc]; rw [add_assoc];
+      have Hmk : m + k₁ = k₁ + m := by apply add_comm
+      rw [Hmk]
+    }
+    rw [Ha]
+    exact Hm
+}
 
 theorem eventually_always_eventually:
   (◇□◇ p) = □◇ p
-:= by sorry
+:= by {
+  apply predicate_ext
+  intro e
+  simp [*] at *
+  constructor
+  . intros H k
+    let ⟨ m, Hm⟩ := H
+    specialize Hm 0
+    rw [drop_0] at Hm
+    let ⟨ n, Hn ⟩ := Hm
+    rw [drop_drop] at Hn
+    sorry
+}
 
 /-
 
