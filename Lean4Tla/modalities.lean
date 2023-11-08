@@ -11,6 +11,7 @@ import Mathlib.Tactic.Tauto
 import Mathlib.Tactic.PushNeg
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.LibrarySearch
+import Std.Data.List.Lemmas
 -- import Mathlib.Data.Nat
 import «Lean4Tla».tla
 import «Lean4Tla».core
@@ -35,7 +36,7 @@ theorem always_to_eventually:
   simp [eventually, always, tla_not]
 }
 
-theorem always_idem:
+@[simp] theorem always_idem:
   (□ □ p) = □ p
 := by {
   simp [always]
@@ -52,7 +53,7 @@ theorem always_idem:
     exact H
 }
 
-theorem eventually_idem:
+@[simp] theorem eventually_idem:
   (◇ ◇ p) = ◇ p
 := by {
   apply tla_not_inj
@@ -161,10 +162,32 @@ theorem always_eventually_distrib:
 := by {
   apply predicate_ext
   intro e
-  simp [eventually, always, tla_or]
+  simp [eventually, always, tla_or, drop_drop]
   constructor <;> (intros H)
-  . sorry
-  . sorry
+  . specialize H k
+    let ⟨ k₁, H₁ ⟩ := H
+    apply Or.elim H₁
+    . intro Hl
+      apply Or.inl
+      intro k₂
+      sorry
+    . intro Hr
+      sorry
+  . apply Or.elim H
+    . intro Hl
+      intro k
+      specialize Hl k
+      let ⟨ x₁, H₁ ⟩ := Hl
+      exists x₁
+      apply Or.inl
+      exact H₁
+    . intro Hr
+      intro k
+      specialize Hr k
+      let ⟨ x₁, H₁ ⟩ := Hr
+      exists x₁
+      apply Or.inr
+      exact H₁
 }
 
 theorem eventually_and:
@@ -216,7 +239,20 @@ theorem always_or:
 
 theorem eventually_always_or:
   ((◇□ p1) ∨ (◇□ p2)) ⊢ ◇□ (p1 ∨ p2)
-:= by sorry
+:= by {
+  simp only [always, eventually] at *
+  simp [drop_drop]
+  intro e H
+  apply Or.elim H
+  . intro Hl
+    let ⟨x₁, H₁⟩  := Hl;
+    exists x₁
+    tauto
+  . intro Hr
+    let ⟨x₁, H₁⟩ := Hr;
+    exists x₁
+    tauto
+}
 
 lemma always_eventually_reverse:
   (□◇ p) = ! ◇□ !p
@@ -230,7 +266,7 @@ lemma eventually_always_reverse:
   simp [always, eventually, tla_not]
 }
 
-theorem always_eventually_idem:
+@[simp] theorem always_eventually_idem:
   (□ ◇ (□ ◇ p)) = (□ ◇ p)
 := by {
   apply predicate_ext
@@ -238,29 +274,59 @@ theorem always_eventually_idem:
   intro e
   constructor
   . intros H k
+    simp [drop_drop] at *
     specialize H k
-    --rw [drop_0] at H
-    let ⟨ xx, Hxx  ⟩ := H
-    specialize Hxx 0
-    rw [drop_0] at Hxx
-    let ⟨ yy, Hyy  ⟩ := Hxx
-
-    exists 0
-    rw [drop_drop] at *
-    sorry
+    let ⟨x₁, H₁⟩ := H
+    specialize H₁ 0
+    let ⟨x₂, H₂⟩ := H₁
+    exists x₁ + x₂
+    simp [*] at *
+    have ac: x₂ + (x₁ + k) = x₁ + x₂ + k := by {
+      rw [add_comm]
+      rw [add_assoc]
+      conv in (k + _) => rw [← add_comm]
+      rw [add_assoc]
+    }
+    rw [← ac]
+    exact H₂
   . intros H k
+    simp [drop_drop] at *
     exists 0
-    intro k₁
-
-    specialize H 0
-    let ⟨ xx, Hxx  ⟩ := H
-    exists 0
-    sorry
+    intro x₂
+    specialize H $ x₂ + k
+    let ⟨x₁, H₁⟩ := H
+    exists x₁
+    simp; exact H₁
 }
 
-theorem eventually_always_idem:
+@[simp] theorem eventually_always_idem:
   (◇ □ ◇ □ p) = ◇ □ p
-:= by sorry
+:= by {
+  apply predicate_ext
+  simp [always, eventually]
+  intro e
+  constructor
+  . intro H
+    simp [drop_drop] at *
+    let ⟨ x₁, H₁ ⟩ := H
+    specialize H₁ 0
+    let ⟨ x₂, H₂ ⟩ := H₁
+    exists x₂ + x₁
+    intro k
+    specialize H₂ k
+    simp at *; apply H₂
+  . intro H
+    simp [drop_drop] at *
+    let ⟨ x₁, H₁ ⟩ := H
+    exists x₁
+    intro x₂
+    exists 0
+    intro x₃
+    specialize H₁ $ x₃ + x₂
+    conv at H₁ =>
+      conv in _ + _ + _ => rw [add_assoc]
+    simp; apply H₁
+}
 
 --Hint Rewrite always_eventually_idem eventually_always_idem : tla.
 
@@ -389,26 +455,23 @@ lemma impl_intro'_2:
 }
 
 theorem always_induction_impl:
-  ((□ (p ∧ q)) ⊢ r) →
-  ((□ (p ∧ r)) ⊢ later r) →
+  (((□ p) ∧ q) ⊢ r) →
+  (((□ p) ∧ r) ⊢ later r) →
   ((□ p) ⊢ □(q → □r))
 := by {
-  intros Hr Hlr
+  intros Hr Hind
   apply always_intro_impl
+  -- simp [always_induction r]
   rw [always_induction r]
   apply impl_intro'
-  simp [*] at *
-  intro e
-  specialize Hr e
-  specialize Hlr e
-  intros H Hqe
-  apply And.intro
-  sorry
-
-
-
-
-
+  apply tla_entails_and
+  . apply Hr
+  . simp [*] at *
+    intros e H₁ H₂ k₁ H₃
+    rw [drop_drop]
+    specialize Hr e
+    specialize Hind e
+    sorry
 }
 
 theorem always_induction_impl_pred a (Q R: T → Prop):
@@ -416,11 +479,21 @@ theorem always_induction_impl_pred a (Q R: T → Prop):
   (∀ s s', R s → a s s' → R s') →
   ((□ ⟨a⟩) ⊢ □(⌜Q⌝ → (□⌜R⌝)))
 := by {
-  intros HR Hind
+  intros Hqr Hrr
   apply always_induction_impl
-  . sorry
-  . sorry
-
+  . simp [action_predicate,state_pred] at *
+    intros e H₁ H₂
+    specialize H₁ 0
+    simp [drop_n] at *
+    apply (Hqr (e 0) (e 1))
+    exact H₂
+    exact H₁
+  . simp [action_predicate,state_pred] at *
+    intros e H₁ H₂
+    simp [drop_n] at *
+    apply Hrr (e 0) (e 1)
+    exact H₂
+    exact H₁ 0
 }
 
 theorem later_eventually:
@@ -457,7 +530,7 @@ theorem later_eventually_weaken:
   exists x+1
 }
 
-theorem always_eventually_always:
+@[simp] theorem always_eventually_always:
   (□◇□ p) = ◇□ p
 := by {
   apply predicate_ext
@@ -485,20 +558,24 @@ theorem always_eventually_always:
     exact Hm
 }
 
-theorem eventually_always_eventually:
+@[simp] theorem eventually_always_eventually:
   (◇□◇ p) = □◇ p
 := by {
   apply predicate_ext
   intro e
   simp [*] at *
+  simp [drop_drop]
   constructor
   . intros H k
-    let ⟨ m, Hm⟩ := H
-    specialize Hm 0
-    rw [drop_0] at Hm
-    let ⟨ n, Hn ⟩ := Hm
-    rw [drop_drop] at Hn
-    sorry
+    let ⟨ x₁, H₁ ⟩ := H
+    specialize H₁ k
+    let ⟨ x₂, H₂ ⟩ := H₁
+    exists x₂ + x₁
+    rw [add_assoc]
+    conv in x₁ + _ => rw [add_comm]
+    exact H₂
+  . intros H
+    exists 0
 }
 
 /-
@@ -524,21 +601,70 @@ def modality_chain (l: List Bool) (p: predicate T) : predicate T :=
   | true :: l => □ (modality_chain l p)
   | false :: l => ◇ (modality_chain l p)
 
-example modality_chain_ex : @modality_chain T [true, false, false, true] p = (□ (◇ (◇ (□ p))))
-:= by sorry
+example : @modality_chain T [true, false, false, true] p = (□ (◇ (◇ (□ p))))
+:= by rfl
 
 
 -- Hint Rewrite always_idem eventually_idem : tla.
 -- Hint Rewrite always_eventually_idem eventually_always_idem : tla.
 -- Hint Rewrite always_eventually_always eventually_always_eventually : tla.
 
+open List
 theorem modality_chain_reduces (l: List Bool) (p: predicate T):
   (modality_chain l p = p) ∨
   (modality_chain l p = ◇ p) ∨
   (modality_chain l p = □ p) ∨
   (modality_chain l p = ◇□ p) ∨
   (modality_chain l p = □◇ p)
-:= by sorry
+:= by {
+  induction l with
+  | nil =>
+    rw [modality_chain]
+    apply Or.inl; rfl
+  | cons h t iH =>
+    induction t with
+    | nil =>
+      cases h
+      . rw [modality_chain]
+        tauto
+      . rw [modality_chain]
+        tauto
+
+    | cons h₁ t₁ iH₁ =>
+      cases h
+      . cases h₁
+        . simp only [modality_chain] at *
+          rw [eventually_idem]
+          apply iH
+        . induction t₁ with
+          | nil =>
+            simp only [modality_chain] at *
+            tauto
+
+          | cons h₂ t₂ iH₂ =>
+            simp only [modality_chain] at *
+            cases h₂
+            . rw [modality_chain]
+              rw [eventually_always_eventually]
+              tauto
+            . rw [modality_chain] at *
+
+
+              sorry
+
+      . cases h₁
+        . rw [modality_chain] at *
+          rw [modality_chain]
+          apply Or.inr
+          apply Or.inr
+          apply Or.inr
+          apply Or.inr
+          sorry
+
+        . simp only [modality_chain] at *
+          rw [always_idem]
+          apply iH
+}
 
 
 
