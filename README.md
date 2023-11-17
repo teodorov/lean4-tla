@@ -6,3 +6,5 @@ As with the original coq embedding, the main goal is a better understanding of t
 
 For the TLA definitions please refer to the seminal paper ["The Temporal
 Logic of Actions"](https://dl.acm.org/doi/pdf/10.1145/177492.177726) by [Leslie Lamport](https://www.lamport.org/).
+
+For an introduction to TLA+ please refer to [https://learntla.com/](https://learntla.com/)
