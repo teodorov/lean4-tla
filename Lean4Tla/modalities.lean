@@ -459,17 +459,19 @@ theorem always_induction_impl:
 := by {
   intros Hr Hind
   apply always_intro_impl
-  -- simp [always_induction r]
   rw [always_induction r]
   apply impl_intro'
   apply tla_entails_and
   . apply Hr
-  . simp [*] at *
-    intros e H₁ H₂ k₁ H₃
-    rw [drop_drop]
-    specialize Hr e
-    specialize Hind e
-    sorry
+  . apply impl_intro'_2
+-- TODO: it should be possible to prove this in the tla layer
+    simp [*] at *
+    intros e H₁ _ k₁ H₃
+    apply Hind
+    . intro k₂
+      rw [drop_drop]
+      apply H₁
+    . exact H₃
 }
 
 theorem always_induction_impl_pred a (Q R: T → Prop):
