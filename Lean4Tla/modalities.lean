@@ -157,6 +157,11 @@ theorem eventually_or:
     . apply H.right
 }
 
+theorem dne {p : Prop} (h : ¬¬p) : p :=
+  Or.elim (em p)
+    (fun hp : p => hp)
+    (fun hnp : ¬p => absurd hnp h)
+
 theorem always_eventually_distrib:
   (□◇ (p ∨ q)) = ((□◇ p) ∨ (□◇ q))
 := by {
@@ -164,15 +169,7 @@ theorem always_eventually_distrib:
   intro e
   simp [eventually, always, tla_or, drop_drop]
   constructor <;> (intros H)
-  . specialize H k
-    let ⟨ k₁, H₁ ⟩ := H
-    apply Or.elim H₁
-    . intro Hl
-      apply Or.inl
-      intro k₂
-      sorry
-    . intro Hr
-      sorry
+  . sorry
   . apply Or.elim H
     . intro Hl
       intro k
@@ -226,7 +223,8 @@ theorem eventually_always_distrib:
     exists xx
     apply Hx
     sorry
-  . sorry
+  . intros H₁
+    sorry
 }
 
 theorem always_or:
@@ -621,49 +619,46 @@ theorem modality_chain_reduces (l: List Bool) (p: predicate T):
   | nil =>
     rw [modality_chain]
     apply Or.inl; rfl
-  | cons h t iH =>
-    induction t with
-    | nil =>
-      cases h
-      . rw [modality_chain]
-        tauto
-      . rw [modality_chain]
-        tauto
-
-    | cons h₁ t₁ iH₁ =>
-      cases h
-      . cases h₁
-        . simp only [modality_chain] at *
-          rw [eventually_idem]
-          apply iH
-        . induction t₁ with
+  | cons h₁ l₁ iH₁ =>
+    cases h₁ <;> rw [modality_chain] at *
+    . induction l₁ with
+      | nil =>
+        rw [modality_chain]
+        apply Or.inr; apply Or.inl; rfl
+      | cons h₂ l₂ iH₂ =>
+        cases h₂ <;> rw [modality_chain] at *
+        . rw [eventually_idem]
+          apply iH₁
+        . cases l₂ with
           | nil =>
-            simp only [modality_chain] at *
+            rw [modality_chain]
             tauto
-
-          | cons h₂ t₂ iH₂ =>
-            simp only [modality_chain] at *
-            cases h₂
-            . rw [modality_chain]
-              rw [eventually_always_eventually]
-              tauto
-            . rw [modality_chain] at *
-
-
-              sorry
-
-      . cases h₁
-        . rw [modality_chain] at *
+          | cons h₃ l₃ =>
+            cases h₃ <;> rw [modality_chain] at *
+            . rw [eventually_always_eventually]
+              apply iH₁
+            . rw [always_idem] at *
+              apply iH₂
+              apply iH₁
+    . induction l₁ with
+      | nil =>
+        rw [modality_chain]
+        tauto
+      | cons h₂ l₂ iH₂ =>
+        cases h₂ <;> rw [modality_chain] at *
+        . cases l₂ with
+        | nil =>
           rw [modality_chain]
-          apply Or.inr
-          apply Or.inr
-          apply Or.inr
-          apply Or.inr
-          sorry
-
-        . simp only [modality_chain] at *
-          rw [always_idem]
-          apply iH
+          tauto
+        | cons h₃ l₃ =>
+          cases h₃ <;> rw [modality_chain] at *
+          . rw [eventually_idem] at *
+            apply iH₂
+            apply iH₁
+          . rw [always_eventually_always]
+            apply iH₁
+        . rw [always_idem]
+          apply iH₁
 }
 
 
