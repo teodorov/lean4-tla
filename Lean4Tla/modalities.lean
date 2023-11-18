@@ -213,18 +213,30 @@ theorem eventually_always_distrib:
   (◇□ (p1 ∧ p2)) = ((◇□ p1) ∧ (◇□ p2))
 := by {
   apply tla_not_inj
-  simp [*] at *
   apply predicate_ext
   intro e
+  simp [*,drop_drop] at *
   constructor
   . intros H x H₁ x₁
-    specialize H x₁
+    specialize H $ x₁ + x
     let ⟨xx, Hx⟩ := H
-    exists xx
+    exists xx + x
+    have xy : xx + (x₁ + x) = xx + x + x₁ := by linarith
+    rw [←xy]
     apply Hx
-    sorry
-  . intros H₁
-    sorry
+    specialize H₁ $  xx + x₁
+    have xy' : xx + x₁ + x = xx + (x₁ + x) := by linarith
+    rw [← xy']
+    exact H₁
+  . sorry
+
+
+
+
+
+
+
+
 }
 
 theorem always_or:
